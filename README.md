@@ -278,7 +278,7 @@ export const servers: Record<ServerType, TBaseServer> = {
     port: config.ports.exposed,
     options: {
       middlewares: {
-        after: [
+        before: [
           auth.optional,
         ],
       },
@@ -289,7 +289,7 @@ export const servers: Record<ServerType, TBaseServer> = {
     port: config.ports.staff,
     options: {
       middlewares: {
-        after: [
+        before: [
           auth.optional,
         ],
       },
@@ -300,9 +300,6 @@ export const servers: Record<ServerType, TBaseServer> = {
     port: config.ports.developer,
     options: {
       middlewares: {
-        after: [
-          auth.optional,
-        ],
         before: [
           (req: Request, res: Response, next: NextFunction) => {
             if (req.path.startsWith('/swagger/')) {
