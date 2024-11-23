@@ -316,7 +316,7 @@ export const servers: Record<ServerType, TBaseServer> = {
 ```
 
 Each server can have its own middleware stack and security configurations while sharing the core application logic.
-```
+
 
 ## License
 
