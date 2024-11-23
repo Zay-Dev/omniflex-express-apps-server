@@ -28,9 +28,8 @@ yarn ws-run apps-server add @omniflex/infra-express@^0.1.0
 yarn ws-run apps-server add @omniflex/infra-mongoose@^0.1.0
 yarn ws-run apps-server add @omniflex/infra-swagger-autogen@^2.24.0
 yarn ws-run apps-server add @omniflex/infra-winston@^0.1.0
-# Identity module packages
 
-```bash
+# Identity module packages
 yarn ws-run apps-server add @omniflex/module-identity-core@^0.1.0
 yarn ws-run apps-server add @omniflex/module-identity-express@^0.1.0
 yarn ws-run apps-server add @omniflex/module-identity-mongoose@^0.1.0
