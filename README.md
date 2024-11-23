@@ -102,10 +102,6 @@ You could also mount the files to the container in production.
 - GET `/v1/users` - List all users
 - GET `/v1/users/:id` - Get user by ID
 
-## License
-
-MIT License - see [LICENSE](LICENSE) for details
-
 ## Technical Guide
 
 ### Server Architecture
@@ -132,8 +128,34 @@ import { errors } from '@omniflex/core';
 The service initialization flow (see `services/index.ts`):
 
 ```typescript:services/index.ts
-startLine: 59
-endLine: 84
+// -- services/index.ts
+
+initializeAppContainer({
+  logger: createLogger({ config }),
+  hashProvider: new BcryptHashProvider(),
+});
+
+(async () => {
+  const postgres = await getPostgres(config);
+  const mongoose = await getMongoose(config);
+
+  Containers.asValues({
+    config,
+    postgres,
+    mongoose,
+  });
+
+  await (await import('./modules')).initialize();
+
+  await postgres.sync();
+
+  await import('./swagger')
+    .then(({ generateSwagger }) => generateSwagger())
+    .then(async () => {
+      await swaggerRoutes();
+      await AutoServer.start();
+    });
+})();
 ```
 
 ### Module-Based Routing
@@ -200,8 +222,45 @@ router.post('/',
 The swagger generation process is handled automatically (see `services/swagger.ts`):
 
 ```typescript:services/swagger.ts
-startLine: 28
-endLine: 64
+// -- services/swagger.ts
+
+export const generateSwagger = async () => {
+  const pathTo = './docs';
+  await fs.mkdir(pathTo, { recursive: true });
+
+  await Promise.all(
+    Object.keys(servers).map(async key => {
+      const doc = {
+        info: {
+          title: getTitle(key),
+          description: getDescription(key),
+        },
+
+        servers: [
+          { url: `http://localhost:${config.ports[key] || "unknown"}` },
+        ],
+
+        components: {
+          '@schemas': modulesSchemas,
+
+          securitySchemes: {
+            bearerAuth: {
+              type: 'http',
+              scheme: 'bearer'
+            }
+          }
+        },
+      };
+
+      const outputFile = `${pathTo}/swagger-${key}.json`;
+
+      const routes = [`./modules/*/${key}`]
+        .flatMap(file => [`${file}.ts`, `${file}.js`]);
+
+      await swaggerAutogen({ openapi: '3.0.0' })(outputFile, routes, doc);
+    })
+  );
+};
 ```
 
 ### Server Configuration
@@ -209,9 +268,57 @@ endLine: 64
 The server configuration is managed through the `servers.ts` file:
 
 ```typescript:servers.ts
-startLine: 10
-endLine: 53
+// -- servers.ts
+
+export const servers: Record<ServerType, TBaseServer> = {
+  exposed: {
+    type: 'exposed',
+    port: config.ports.exposed,
+    options: {
+      middlewares: {
+        after: [
+          auth.optional,
+        ],
+      },
+    },
+  },
+  staff: {
+    type: 'staff',
+    port: config.ports.staff,
+    options: {
+      middlewares: {
+        after: [
+          auth.optional,
+        ],
+      },
+    },
+  },
+  developer: {
+    type: 'developer',
+    port: config.ports.developer,
+    options: {
+      middlewares: {
+        after: [
+          auth.optional,
+        ],
+        before: [
+          (req: Request, res: Response, next: NextFunction) => {
+            if (req.path.startsWith('/swagger/')) {
+              res.locals._noLogger = true;
+            }
+
+            next();
+          },
+        ],
+      },
+    },
+  },
+};
 ```
 
 Each server can have its own middleware stack and security configurations while sharing the core application logic.
 ```
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details
