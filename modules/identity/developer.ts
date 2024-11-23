@@ -2,15 +2,14 @@
 // #swagger.file.basePath = '/v1/users'
 
 import * as Servers from '@/servers';
+import { resolve } from '@omniflex/module-identity-core';
 import { DbEntries } from '@omniflex/infra-express/validators';
-//import { repositories } from '@omniflex/module-identity-postgres';
-import { repositories } from '@omniflex/module-identity-mongoose';
 
 import { BaseExpressController }
   from '@omniflex/infra-express/utils/base-controller';
 
-const profiles = repositories.profiles.raw();
-
+const repositories = resolve();
+const profiles = repositories.profiles;
 const router = Servers.developerRoute('/v1/users');
 
 router
@@ -33,9 +32,16 @@ router
 
       controller.tryAction(async function () {
         controller.respondMany(await profiles
-          .find({
-            isDeleted: false,
-          })
+          .find(
+            {
+              isDeleted: { $ne: true },
+              //user: { identifier: 'null' },
+            },
+            {
+              populate: 'user',
+              select: '-createdAt -updatedAt -isDeleted',
+            },
+          )
         );
       });
     });

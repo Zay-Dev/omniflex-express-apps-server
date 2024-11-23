@@ -5,12 +5,13 @@ import * as Servers from '@/servers';
 import { create } from './controller';
 import { auth } from '@/middlewares/auth';
 
+import { resolve } from '@omniflex/module-identity-core';
 import { DbEntries } from '@omniflex/infra-express/validators';
-import { repositories } from '@omniflex/module-identity-mongoose';
 
 import * as Validators
   from '@omniflex/module-identity-express/register.validation';
 
+const repositories = resolve();
 const router = Servers.exposedRoute('/v1/users');
 
 const appType = Servers.servers.exposed.type;
