@@ -6,7 +6,7 @@ import { create } from './controller';
 import { auth } from '@/middlewares/auth';
 
 import { DbEntries } from '@omniflex/infra-express/validators';
-import { repositories } from '@omniflex/module-identity-postgres';
+import { repositories } from '@omniflex/module-identity-mongoose';
 
 import * as Validators
   from '@omniflex/module-identity-express/register.validation';

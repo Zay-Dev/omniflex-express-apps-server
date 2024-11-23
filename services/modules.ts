@@ -33,7 +33,7 @@ async function routes() {
 }
 
 export const initialize = async () => {
-  await postgresIdentity();
-  //await mongooseIdentity();
+  //await postgresIdentity();
+  await mongooseIdentity();
   await routes();
 };

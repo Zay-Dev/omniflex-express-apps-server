@@ -3,21 +3,20 @@
 
 import * as Servers from '@/servers';
 import { DbEntries } from '@omniflex/infra-express/validators';
-import { repositories as postgresRepositories } from '@omniflex/module-identity-postgres';
-//import { repositories as mongooseRepositories } from '@omniflex/module-identity-mongoose';
+//import { repositories } from '@omniflex/module-identity-postgres';
+import { repositories } from '@omniflex/module-identity-mongoose';
 
 import { BaseExpressController }
   from '@omniflex/infra-express/utils/base-controller';
 
-const postgresProfiles = postgresRepositories.profiles.raw();
-//const mongooseProfiles = mongooseRepositories.profiles.raw();
+const profiles = repositories.profiles.raw();
 
 const router = Servers.developerRoute('/v1/users');
 
 router
   .get('/:id',
     DbEntries.requiredById(
-      postgresRepositories.users,
+      repositories.users,
       (req) => req.params.id,
     ),
     (req, res, next) => {
@@ -33,11 +32,9 @@ router
       const controller = new BaseExpressController(req, res, next);
 
       controller.tryAction(async function () {
-        controller.respondMany(await postgresProfiles //mongooseProfiles
+        controller.respondMany(await profiles
           .find({
-            where: {
-              isDeleted: false,
-            },
+            isDeleted: false,
           })
         );
       });

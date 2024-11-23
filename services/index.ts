@@ -9,12 +9,12 @@ import { AutoServer } from '@omniflex/infra-express';
 import { Containers, initializeAppContainer } from '@omniflex/core';
 
 import { createLogger } from '@omniflex/infra-winston';
-import { getConnection as getPostgres } from '@omniflex/infra-postgres';
-import { getConnection as getMongoose } from '@omniflex/infra-mongoose';
+//import { getConnection } from '@omniflex/infra-postgres';
+import { getConnection } from '@omniflex/infra-mongoose';
 
 const appContainer = Containers.appContainerAs<{
-  postgres: Awaited<ReturnType<typeof getPostgres>>,
-  mongoose: Awaited<ReturnType<typeof getMongoose>>,
+  //postgres: Awaited<ReturnType<typeof getConnection>>,
+  mongoose: Awaited<ReturnType<typeof getConnection>>,
 }>();
 
 export const resolve = appContainer.resolve;
@@ -62,18 +62,18 @@ initializeAppContainer({
 });
 
 (async () => {
-  const postgres = await getPostgres(config);
-  const mongoose = await getMongoose(config);
+  //const postgres = await getConnection(config);
+  const mongoose = await getConnection(config);
 
   Containers.asValues({
     config,
-    postgres,
+    //postgres,
     mongoose,
   });
 
   await (await import('./modules')).initialize();
 
-  await postgres.sync();
+  //await postgres.sync();
 
   await import('./swagger')
     .then(({ generateSwagger }) => generateSwagger())
