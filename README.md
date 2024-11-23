@@ -4,6 +4,8 @@
 
 This project is built using the Omniflex Mono-Repo. For more information, visit [omniflex.io](https://omniflex.io).
 
+The omniflex mono-repo is available at [here](https://github.com/Zay-Dev/omniflex).
+
 ## Prerequisites
 
 - Node.js (v16 or higher)
