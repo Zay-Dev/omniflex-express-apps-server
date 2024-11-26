@@ -1,3 +1,9 @@
+async function userSession() {
+  const mongoose = await import('@omniflex/module-user-session-mongoose');
+
+  mongoose.createRegisteredRepositories();
+}
+
 async function postgresIdentity() {
   const postgres = await import('@omniflex/module-identity-postgres');
   const {
@@ -35,5 +41,7 @@ async function routes() {
 export const initialize = async () => {
   //await postgresIdentity();
   await mongooseIdentity();
+  await userSession();
+
   await routes();
 };

@@ -47,4 +47,11 @@ router
     Validators.validateLoginWithEmail,
 
     create(controller => controller.tryLoginWithEmail(appType)),
+  )
+
+  .delete('/access-tokens',
+    // #swagger.security = [{"bearerAuth": []}]
+    auth.requireExposed,
+
+    create(controller => controller.tryLogout()),
   );

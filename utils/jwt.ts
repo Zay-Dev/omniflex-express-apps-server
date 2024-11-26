@@ -17,14 +17,21 @@ export class JwtProvider {
     });
   }
 
-  async sign(payload: Record<string, any>): Promise<string> {
+  async sign(
+    payload: Record<string, any>,
+    expiresInMs: number,
+  ): Promise<string> {
     await this._loadKeys();
 
     return jwt.sign(payload, this._privateKey!, {
+      expiresIn: expiresInMs,
       algorithm: config.jwt.algorithm,
-      expiresIn: config.jwt.expiresIn,
       issuer: config.jwt.issuer || undefined,
     });
+  }
+
+  async decode(token: string): Promise<Record<string, any>> {
+    return jwt.decode(token) as Record<string, any>;
   }
 
   async verify(token: string): Promise<Record<string, any>> {

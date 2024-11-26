@@ -4,10 +4,12 @@ import { errors } from '@omniflex/core';
 
 import { ServerType } from '@/servers';
 import { jwtProvider } from "@/utils/jwt";
+import { UserSessionService } from '@omniflex/module-user-session-core/services/user-session.service'
 
 const jwt = jwtProvider;
 
 const throwIfNotValidToken = async (identifier: string) => {
+  await UserSessionService.throwIfInvalidSession(identifier);
 };
 
 const middleware = ({

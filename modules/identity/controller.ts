@@ -1,6 +1,4 @@
 import { errors } from '@omniflex/core';
-import { jwtProvider } from '@/utils/jwt';
-
 import { TUser } from '@omniflex/module-identity-core/types';
 import { getControllerCreator } from '@omniflex/infra-express';
 
@@ -9,6 +7,8 @@ import * as Schemas
 
 import { UsersController }
   from '@omniflex/module-identity-express/users.controller';
+
+import { AuthService } from './auth.service';
 
 class Controller extends UsersController<TUser & {
   appTypes: string[];
@@ -22,7 +22,7 @@ class Controller extends UsersController<TUser & {
         username: body.email,
       });
 
-      const user = await this.repository.update(id, {
+      const user = await this.repository.updateById(id, {
         appTypes: [appType],
       });
 
@@ -44,15 +44,23 @@ class Controller extends UsersController<TUser & {
         throw errors.unauthorized();
       }
 
-      return this.respondOne({
-        token: await jwtProvider.sign({
-          ...user,
-          id: user.id,
+      const {
+        accessToken,
+        refreshToken,
+      } = await AuthService.getTokens(user, this.res);
 
-          __appType: appType,
-          __type: 'access-token',
-        }),
+      return this.respondOne({
+        refreshToken,
+        token: accessToken,
       });
+    });
+  }
+
+  tryLogout() {
+    this.tryAction(async () => {
+      AuthService.logout(this.req);
+
+      return this.res.status(204).send();
     });
   }
 

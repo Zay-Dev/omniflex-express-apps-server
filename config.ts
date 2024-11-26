@@ -23,6 +23,7 @@ const config: TBaseConfig &
       issuer?: string;
       algorithm: Algorithm;
       expiresIn: string | number;
+      refreshTokenExpiresIn: string | number;
     };
   } = {
   env: (process.env.NODE_ENV || 'development') as TBaseConfig['env'],
@@ -43,12 +44,14 @@ const config: TBaseConfig &
   },
 
   jwt: {
-    publicKeyPath: path.resolve(process.cwd(), 'files/public.pem'),
-    privateKeyPath: path.resolve(process.cwd(), 'files/private.pem'),
+    issuer: process.env.JWT_ISSUER || 'omniflex-server',
+    algorithm: process.env.JWT_ALGORITHM as Algorithm || 'RS256',
 
-    expiresIn: '1d',
-    algorithm: 'RS256',
-    issuer: 'omniflex-server'
+    publicKeyPath: path.resolve(process.cwd(), process.env.JWT_PUBLIC_KEY_PATH || 'files/public.pem'),
+    privateKeyPath: path.resolve(process.cwd(), process.env.JWT_PRIVATE_KEY_PATH || 'files/private.pem'),
+
+    expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION || '1d',
+    refreshTokenExpiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRATION || '30d',
   },
 
   postgres: {
