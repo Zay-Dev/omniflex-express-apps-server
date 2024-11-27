@@ -1,4 +1,12 @@
-async function userSession() {
+import config from '@/config';
+
+async function postgresUserSession() {
+  const postgres = await import('@omniflex/module-user-session-postgres');
+
+  postgres.createRegisteredRepositories();
+}
+
+async function mongooseUserSession() {
   const mongoose = await import('@omniflex/module-user-session-mongoose');
 
   mongoose.createRegisteredRepositories();
@@ -39,9 +47,17 @@ async function routes() {
 }
 
 export const initialize = async () => {
-  //await postgresIdentity();
-  await mongooseIdentity();
-  await userSession();
+  switch (config.dbDriver) {
+    case 'mongoose':
+      await mongooseIdentity();
+      await mongooseUserSession();
+      break;
+
+    case 'postgres':
+      await postgresIdentity();
+      await postgresUserSession();
+      break;
+  }
 
   await routes();
 };

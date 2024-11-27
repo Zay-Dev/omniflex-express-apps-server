@@ -11,6 +11,8 @@ dotenv.config();
 const config: TBaseConfig &
   TPostgresConfig &
   TMongooseConfig & {
+    dbDriver: 'postgres' | 'mongoose';
+
     ports: {
       exposed: number;
       staff: number;
@@ -27,6 +29,8 @@ const config: TBaseConfig &
     };
   } = {
   env: (process.env.NODE_ENV || 'development') as TBaseConfig['env'],
+
+  dbDriver: process.env.DB_DRIVER as 'postgres' | 'mongoose',
 
   logging: {
     exposeErrorDetails: process.env.EXPOSE_ERROR_DETAILS == 'true',

@@ -9,12 +9,12 @@ import { AutoServer } from '@omniflex/infra-express';
 import { Containers, initializeAppContainer } from '@omniflex/core';
 
 import { createLogger } from '@omniflex/infra-winston';
-//import { getConnection } from '@omniflex/infra-postgres';
-import { getConnection } from '@omniflex/infra-mongoose';
+import * as Postgres from '@omniflex/infra-postgres';
+import * as Mongoose from '@omniflex/infra-mongoose';
 
 const appContainer = Containers.appContainerAs<{
-  //postgres: Awaited<ReturnType<typeof getConnection>>,
-  mongoose: Awaited<ReturnType<typeof getConnection>>,
+  postgres: Awaited<ReturnType<typeof Postgres.getConnection>>,
+  mongoose: Awaited<ReturnType<typeof Mongoose.getConnection>>,
 }>();
 
 export const resolve = appContainer.resolve;
@@ -62,18 +62,23 @@ initializeAppContainer({
 });
 
 (async () => {
-  //const postgres = await getConnection(config);
-  const mongoose = await getConnection(config);
-
-  Containers.asValues({
+  const registered = Containers.asValues({
     config,
-    //postgres,
-    mongoose,
+
+    postgres: config.dbDriver == 'postgres' &&
+      await Postgres.getConnection(config) || undefined,
+    mongoose: config.dbDriver == 'mongoose' &&
+      await Mongoose.getConnection(config) || undefined,
   });
 
   await (await import('./modules')).initialize();
 
-  //await postgres.sync();
+  switch (config.dbDriver) {
+    case 'postgres':
+      await registered.resolve('postgres').sync();
+      console.log(12345);
+      break;
+  }
 
   await import('./swagger')
     .then(({ generateSwagger }) => generateSwagger())
