@@ -4,7 +4,7 @@ import { errors, logger } from '@omniflex/core';
 
 import { ServerType } from '@/servers';
 import { jwtProvider } from "@/utils/jwt";
-import { UserSessionService } from '@omniflex/module-user-session-core/services/user-session.service';
+import { UserSessionService } from '@omniflex/module-user-session-core';
 
 const jwt = jwtProvider;
 

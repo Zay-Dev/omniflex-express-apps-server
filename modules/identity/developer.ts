@@ -4,9 +4,7 @@
 import * as Servers from '@/servers';
 import { resolve } from '@omniflex/module-identity-core';
 import { DbEntries } from '@omniflex/infra-express/validators';
-
-import { BaseExpressController }
-  from '@omniflex/infra-express/utils/base-controller';
+import { BaseExpressController } from '@omniflex/infra-express';
 
 const repositories = resolve();
 const profiles = repositories.profiles;

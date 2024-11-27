@@ -2,20 +2,18 @@
 // #swagger.file.basePath = '/v1/users'
 
 import * as Servers from '@/servers';
-import { create } from './controller';
 import { auth } from '@/middlewares/auth';
+import { jwtProvider } from '@/utils/jwt';
 
 import { resolve } from '@omniflex/module-identity-core';
 import { DbEntries } from '@omniflex/infra-express/validators';
 import { UserSessionService } from '@omniflex/module-user-session-core/services/user-session.service';
 
-import * as Validators
-  from '@omniflex/module-identity-express/register.validation';
-import * as UserSessionValidators
-  from '@omniflex/module-user-session-express/session.validation';
+import { IdentityValidators } from '@omniflex/module-identity-express';
+import { UserSessionValidators } from '@omniflex/module-user-session-express';
 
+import { create } from './controller';
 import { validateRefreshToken } from './refresh-token.validation';
-import { jwtProvider } from '@/utils/jwt';
 
 const repositories = resolve();
 const router = Servers.exposedRoute('/v1/users');
@@ -43,14 +41,14 @@ router
 
   .post('/',
     // #swagger.jsonBody = required|components/schemas/moduleIdentity/registerWithEmail
-    Validators.validateRegisterWithEmail,
+    IdentityValidators.validateRegisterWithEmail,
 
     create(controller => controller.tryRegisterWithEmail(appType)),
   )
 
   .post('/access-tokens',
     // #swagger.jsonBody = required|components/schemas/moduleIdentity/loginWithEmail
-    Validators.validateLoginWithEmail,
+    IdentityValidators.validateLoginWithEmail,
 
     create(controller => controller.tryLoginWithEmail(appType)),
   )

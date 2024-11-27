@@ -3,7 +3,7 @@ import ms from 'ms';
 import config from '@/config';
 import { jwtProvider } from '@/utils/jwt';
 import { Request, Response } from '@omniflex/infra-express/types';
-import { UserSessionService } from '@omniflex/module-user-session-core/services/user-session.service';
+import { UserSessionService } from '@omniflex/module-user-session-core';
 
 type TUser = {
   id: any;
@@ -44,7 +44,7 @@ export class AuthService {
       {
         metadata,
         deviceInfo: res.req.useragent,
-        remoteAddress: res.locals.ipAddress,
+        remoteAddress: res.req.ip || '',
         userAgent: res.req.headers['user-agent'],
       },
     );

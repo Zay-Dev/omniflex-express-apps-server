@@ -2,11 +2,8 @@ import { errors } from '@omniflex/core';
 import { TUser } from '@omniflex/module-identity-core/types';
 import { getControllerCreator } from '@omniflex/infra-express';
 
-import * as IdentitySchemas
-  from '@omniflex/module-identity-core/user.schema';
-
-import * as UserSessionSchemas
-  from '@omniflex/module-user-session-core/session.schema';
+import { IdentitySchemas } from '@omniflex/module-identity-core';
+import { UserSessionSchemas } from '@omniflex/module-user-session-core';
 
 import { UsersController }
   from '@omniflex/module-identity-express/users.controller';
