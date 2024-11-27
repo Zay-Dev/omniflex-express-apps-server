@@ -1,10 +1,10 @@
 //import config from "@/config";
-import { Response } from 'express'
-import { errors } from '@omniflex/core';
+import { Response } from 'express';
+import { errors, logger } from '@omniflex/core';
 
 import { ServerType } from '@/servers';
 import { jwtProvider } from "@/utils/jwt";
-import { UserSessionService } from '@omniflex/module-user-session-core/services/user-session.service'
+import { UserSessionService } from '@omniflex/module-user-session-core/services/user-session.service';
 
 const jwt = jwtProvider;
 
@@ -49,7 +49,8 @@ const middleware = ({
 
       await throwIfNotValidToken(__identifier);
       return next();
-    } catch (err) {
+    } catch (error: any) {
+      logger.error("Auth", { error });
       return next(errors.unauthorized());
     }
 

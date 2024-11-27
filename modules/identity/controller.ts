@@ -2,8 +2,11 @@ import { errors } from '@omniflex/core';
 import { TUser } from '@omniflex/module-identity-core/types';
 import { getControllerCreator } from '@omniflex/infra-express';
 
-import * as Schemas
+import * as IdentitySchemas
   from '@omniflex/module-identity-core/user.schema';
+
+import * as UserSessionSchemas
+  from '@omniflex/module-user-session-core/session.schema';
 
 import { UsersController }
   from '@omniflex/module-identity-express/users.controller';
@@ -14,7 +17,7 @@ class Controller extends UsersController<TUser & {
   appTypes: string[];
 }> {
   tryRegisterWithEmail(appType: string) {
-    type TBody = Schemas.TBodyRegisterWithEmail;
+    type TBody = IdentitySchemas.TBodyRegisterWithEmail;
 
     this.tryActionWithBody<TBody>(async ({ password, ...body }) => {
       const { id } = await this.register(appType, password, {
@@ -31,7 +34,7 @@ class Controller extends UsersController<TUser & {
   }
 
   tryLoginWithEmail(appType: string) {
-    type TBody = Schemas.TBodyLoginWithEmail;
+    type TBody = IdentitySchemas.TBodyLoginWithEmail;
 
     this.tryActionWithBody<TBody>(async (body) => {
       const user = await this.login(appType, {
@@ -52,6 +55,21 @@ class Controller extends UsersController<TUser & {
       return this.respondOne({
         refreshToken,
         token: accessToken,
+      });
+    });
+  }
+
+  tryRefreshToken() {
+    type TBody = UserSessionSchemas.TBodyRefreshToken;
+
+    this.tryActionWithBody<TBody>(async ({ refreshToken }) => {
+      const user = this.res.locals.required.user;
+      const tokens = await AuthService
+        .refreshTokens(refreshToken, user, this.res);
+
+      return this.respondOne({
+        token: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
       });
     });
   }

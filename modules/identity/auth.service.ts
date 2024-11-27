@@ -18,6 +18,21 @@ export class AuthService {
     await UserSessionService.inactivateByPairIdentifier(__pairIdentifier);
   }
 
+  static async refreshTokens(refreshToken: string, user: TUser, res: Response) {
+    const {
+      __identifier,
+      __pairIdentifier,
+    } = await jwtProvider.decode(refreshToken);
+
+    await UserSessionService.inactivateByPairIdentifier(__pairIdentifier);
+
+    return this.getTokens(
+      user,
+      res,
+      { previousIdentifier: __identifier, previousPairIdentifier: __pairIdentifier },
+    );
+  }
+
   static async getTokens(
     user: TUser,
     res: Response,
