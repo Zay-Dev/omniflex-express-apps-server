@@ -157,18 +157,22 @@ initializeAppContainer({
 });
 
 (async () => {
-  const postgres = await getPostgres(config);
-  const mongoose = await getMongoose(config);
-
-  Containers.asValues({
+  const registered = Containers.asValues({
     config,
-    postgres,
-    mongoose,
+
+    postgres: config.dbDriver == 'postgres' &&
+      await Postgres.getConnection(config) || undefined,
+    mongoose: config.dbDriver == 'mongoose' &&
+      await Mongoose.getConnection(config) || undefined,
   });
 
   await (await import('./modules')).initialize();
 
-  await postgres.sync();
+  switch (config.dbDriver) {
+    case 'postgres':
+      await registered.resolve('postgres').sync();
+      break;
+  }
 
   await import('./swagger')
     .then(({ generateSwagger }) => generateSwagger())
