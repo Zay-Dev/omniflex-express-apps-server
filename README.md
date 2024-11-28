@@ -41,22 +41,40 @@ yarn ws-run apps-server add @omniflex/module-identity-postgres@^0.1.0
 Create a `.env` file in the project root:
 
 ```env
+# Environment (development, production, test)
 NODE_ENV=development
-LOG_LEVEL=info
+
+# Logging level (error, warn, info, debug, verbose, silly)
+LOG_LEVEL=silly
+
+# Set to 'true' to expose detailed error information in responses (not recommended for production)
 EXPOSE_ERROR_DETAILS=true
 
-#Server Ports
-PORT_EXPOSED=3500
-PORT_STAFF=3600
-PORT_DEVELOPER=3700
-
-# Database Connections
-POSTGRES_URI=postgresql://username:password@localhost:5432/database
-MONGO_URI=mongodb://localhost:27017
-MONGO_DB=omniflex
-
-# Request Timeout
+# Request timeout in seconds
 REQUEST_TIMEOUT_SECONDS=30
+
+# Server Ports
+PORT_EXPOSED=3500  # Port for public/exposed API
+PORT_STAFF=3600    # Port for staff API
+PORT_DEVELOPER=3700  # Port for developer API
+
+# Db Driver (mongoose, postgres)
+DB_DRIVER=mongoose
+
+# MongoDb
+MONGO_DB=
+MONGO_URI=mongodb://localhost:27017/omniflex
+
+# Postgres
+POSTGRES_URI="postgresql://postgres:test1234@localhost:5432/omniflex?schema=public"
+
+# JWT Configuration
+JWT_ALGORITHM=RS256
+JWT_ISSUER=omniflex-server
+JWT_PUBLIC_KEY_PATH=files/public.pem
+JWT_PRIVATE_KEY_PATH=files/private.pem
+JWT_ACCESS_TOKEN_EXPIRATION=1d
+JWT_REFRESH_TOKEN_EXPIRATION=30d
 ```
 
 ## Project Structure
@@ -93,6 +111,8 @@ You could also mount the files to the container in production.
 ### Public APIs (Port 3500)
 - POST `/v1/users` - Register new user
 - POST `/v1/users/access-tokens` - Login
+- PUT `/v1/users/access-tokens` - Refresh access token
+- DELETE `/v1/users/access-tokens` - Revoke access token
 - GET `/v1/users/my/profile` - Get current user profile
 
 ### Staff APIs (Port 3600)
