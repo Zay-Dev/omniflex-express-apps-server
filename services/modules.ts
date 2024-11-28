@@ -1,4 +1,5 @@
 import config from '@/config';
+import { autoImport } from '@omniflex/core';
 
 async function postgresUserSession() {
   const postgres = await import('@omniflex/module-user-session-postgres');
@@ -43,7 +44,15 @@ async function mongooseIdentity() {
 }
 
 async function routes() {
-  await import('@/modules/identity');
+  const { join } = await import('path');
+
+  const dirname = import.meta.dirname;
+  const path = join(dirname, '../modules');
+
+  await autoImport(path, (filename) => {
+    return ['exposed', 'staff', 'developer']
+      .includes(filename);
+  });
 }
 
 export const initialize = async () => {

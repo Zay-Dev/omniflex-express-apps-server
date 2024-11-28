@@ -76,7 +76,6 @@ initializeAppContainer({
   switch (config.dbDriver) {
     case 'postgres':
       await registered.resolve('postgres').sync();
-      console.log(12345);
       break;
   }
 
