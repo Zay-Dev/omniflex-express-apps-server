@@ -2,6 +2,10 @@ import { errors } from '@omniflex/core';
 import { jwtProvider } from '@/utils/jwt';
 import { Request, Response, NextFunction } from 'express';
 
+import { resolve } from '@omniflex/module-identity-core';
+import { DbEntries } from '@omniflex/infra-express/validators';
+import { UserSessionService } from '@omniflex/module-user-session-core/services/user-session.service';
+
 export const validateRefreshToken = [
   async (req: Request, res: Response, next: NextFunction) => {
     const { refreshToken } = req.body;
@@ -18,4 +22,24 @@ export const validateRefreshToken = [
       return next(errors.unauthorized());
     }
   },
+  async (req, _, next) => {
+    const { __identifier } = await jwtProvider.decode(req.body.refreshToken);
+
+    try {
+      await UserSessionService.throwIfInvalidSession(__identifier);
+    } catch (error) {
+      return next(error);
+    }
+
+    return next();
+  },
+  DbEntries.requiredById(
+    resolve().users,
+    async (req) => {
+      const { id } = await jwtProvider.decode(req.body.refreshToken);
+
+      return id;
+    },
+    'user',
+  ),
 ];

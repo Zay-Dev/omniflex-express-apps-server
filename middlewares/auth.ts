@@ -40,6 +40,7 @@ const middleware = ({
       }
 
       res.locals.user = user;
+      res.locals.accessToken = token;
 
       if (typeof mode != "boolean") {
         if (mode != user.__appType) {

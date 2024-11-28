@@ -6,21 +6,20 @@ import { resolve } from '@omniflex/module-identity-core';
 import { DbEntries } from '@omniflex/infra-express/validators';
 import { BaseExpressController } from '@omniflex/infra-express';
 
-const repositories = resolve();
-const profiles = repositories.profiles;
 const router = Servers.developerRoute('/v1/users');
 
 router
   .get('/:id',
     DbEntries.requiredById(
-      repositories.users,
+      resolve().users,
       (req) => req.params.id,
+      'user',
     ),
     (req, res, next) => {
       const controller = new BaseExpressController(req, res, next);
 
       controller.tryAction(() => {
-        controller.respondRequired('_byId');
+        controller.respondRequired('user');
       });
     })
 
@@ -29,17 +28,18 @@ router
       const controller = new BaseExpressController(req, res, next);
 
       controller.tryAction(async function () {
-        controller.respondMany(await profiles
-          .find(
-            {
-              isDeleted: { $ne: true },
-              //user: { identifier: 'null' },
-            },
-            {
-              populate: 'user',
-              select: '-createdAt -updatedAt -isDeleted',
-            },
-          )
+        const users = await resolve().profiles.find(
+          {
+            isDeleted: { $ne: true },
+            //user: { identifier: 'null' },
+          },
+          {
+            populate: 'user',
+            select: '-createdAt -updatedAt -isDeleted',
+          },
         );
+
+        controller.respondMany(users);
       });
-    });
+    }
+  );

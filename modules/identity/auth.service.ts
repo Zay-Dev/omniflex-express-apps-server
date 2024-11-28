@@ -2,7 +2,8 @@ import ms from 'ms';
 
 import config from '@/config';
 import { jwtProvider } from '@/utils/jwt';
-import { Request, Response } from '@omniflex/infra-express/types';
+
+import { Response } from '@omniflex/infra-express/types';
 import { UserSessionService } from '@omniflex/module-user-session-core';
 
 type TUser = {
@@ -11,8 +12,8 @@ type TUser = {
 };
 
 export class AuthService {
-  static async logout(req: Request) {
-    const token = `${req.headers.authorization}`.substring(7);
+  static async logout(res: Response) {
+    const token = res.locals.accessToken;
     const { __pairIdentifier } = await jwtProvider.decode(token);
 
     await UserSessionService.inactivateByPairIdentifier(__pairIdentifier);
