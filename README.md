@@ -33,7 +33,7 @@ yarn ws-run apps-server add @omniflex/infra-winston@^0.1.0
 yarn ws-run apps-server add @omniflex/module-identity-core@^0.1.0
 yarn ws-run apps-server add @omniflex/module-identity-express@^0.1.0
 yarn ws-run apps-server add @omniflex/module-identity-mongoose@^0.1.0
-yarn ws-run apps-server add @omniflex/module-identity-postgres@^0.1.0
+yarn ws-run apps-server add @omniflex/module-identity-sequelize-v6@^0.1.0
 ```
 
 ### 2. Environment Setup

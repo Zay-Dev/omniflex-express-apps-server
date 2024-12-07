@@ -1,10 +1,10 @@
 import config from '@/config';
 import { autoImport } from '@omniflex/core';
 
-async function postgresUserSession() {
-  const postgres = await import('@omniflex/module-user-session-postgres');
+async function sequelizeUserSession() {
+  const sequelize = await import('@omniflex/module-user-session-sequelize-v6');
 
-  postgres.createRegisteredRepositories();
+  sequelize.createRegisteredRepositories();
 }
 
 async function mongooseUserSession() {
@@ -13,22 +13,19 @@ async function mongooseUserSession() {
   mongoose.createRegisteredRepositories();
 }
 
-async function postgresIdentity() {
-  const postgres = await import('@omniflex/module-identity-postgres');
-  const {
-    requiredString,
-    toRequiredArray,
-  } = await import('@omniflex/infra-postgres/types');
+async function sequelizeIdentity() {
+  const sequelize = await import('@omniflex/module-identity-sequelize-v6');
+  const Types = await import('@omniflex/infra-sequelize-v6/types');
 
-  const userSchema = postgres.getUserSchema({
-    ...postgres.userBaseSchema,
+  const userSchema = sequelize.getUserSchema({
+    ...sequelize.userBaseSchema,
     appTypes: {
-      ...toRequiredArray(requiredString()),
+      ...Types.mixed(),
       defaultValue: [],
     },
   });
 
-  postgres.createRegisteredRepositories(userSchema);
+  sequelize.createRegisteredRepositories(userSchema);
 }
 
 async function mongooseIdentity() {
@@ -62,9 +59,10 @@ export const initialize = async () => {
       await mongooseUserSession();
       break;
 
+    case 'sqlite':
     case 'postgres':
-      await postgresIdentity();
-      await postgresUserSession();
+      await sequelizeIdentity();
+      await sequelizeUserSession();
       break;
   }
 

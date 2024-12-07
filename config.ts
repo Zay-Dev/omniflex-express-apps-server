@@ -3,15 +3,17 @@ import dotenv from 'dotenv';
 import { Algorithm } from 'jsonwebtoken';
 
 import { TBaseConfig } from '@omniflex/core/types';
+import { TSQLiteConfig } from '@omniflex/infra-sqlite/types';
 import { TPostgresConfig } from '@omniflex/infra-postgres/types';
 import { TMongooseConfig } from '@omniflex/infra-mongoose/types';
 
 dotenv.config();
 
 const config: TBaseConfig &
+  TSQLiteConfig &
   TPostgresConfig &
   TMongooseConfig & {
-    dbDriver: 'postgres' | 'mongoose';
+    dbDriver: 'postgres' | 'mongoose' | 'sqlite';
 
     ports: {
       exposed: number;
@@ -65,6 +67,10 @@ const config: TBaseConfig &
   mongoose: {
     uri: process.env.MONGO_URI || '',
     dbName: process.env.MONGO_DB || '',
+  },
+
+  sqlite: {
+    storage: process.env.SQLITE_URI || '',
   },
 };
 

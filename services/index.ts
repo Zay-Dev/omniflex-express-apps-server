@@ -1,21 +1,15 @@
 import config from '@/config';
 import * as Servers from '@/servers';
 import { BcryptHashProvider } from '@/utils/hash';
+import { appContainer, connectDb } from './db-driver';
 
 import helmet from 'helmet';
 import swaggerUI from 'swagger-ui-express';
 
 import { AutoServer } from '@omniflex/infra-express';
+import { createLogger } from '@omniflex/infra-winston';
 import { Containers, initializeAppContainer } from '@omniflex/core';
 
-import { createLogger } from '@omniflex/infra-winston';
-import * as Postgres from '@omniflex/infra-postgres';
-import * as Mongoose from '@omniflex/infra-mongoose';
-
-const appContainer = Containers.appContainerAs<{
-  postgres: Awaited<ReturnType<typeof Postgres.getConnection>>,
-  mongoose: Awaited<ReturnType<typeof Mongoose.getConnection>>,
-}>();
 
 export const resolve = appContainer.resolve;
 
@@ -62,22 +56,18 @@ initializeAppContainer({
 });
 
 (async () => {
-  const registered = Containers.asValues({
-    config,
+  const { sequelize, mongoose } = await connectDb();
 
-    postgres: config.dbDriver == 'postgres' &&
-      await Postgres.getConnection(config) || undefined,
-    mongoose: config.dbDriver == 'mongoose' &&
-      await Mongoose.getConnection(config) || undefined,
+  Containers.asValues({
+    config,
+    mongoose,
+    sequelize,
   });
 
-  await (await import('./modules')).initialize();
+  await (await import('./modules'))
+    .initialize();
 
-  switch (config.dbDriver) {
-    case 'postgres':
-      await registered.resolve('postgres').sync();
-      break;
-  }
+  sequelize && await sequelize.sync();
 
   await import('./swagger')
     .then(({ generateSwagger }) => generateSwagger())
