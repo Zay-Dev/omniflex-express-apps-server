@@ -30,8 +30,8 @@ router
       controller.tryAction(async function () {
         const users = await resolve().profiles.find(
           {
-            isDeleted: { $ne: true },
-            //user: { identifier: 'null' },
+            deletedAt: null,
+            //{ identifier: 'null' },
           },
           {
             populate: 'user',
