@@ -23,7 +23,7 @@ router
     auth.requireExposed,
     DbEntries.requiredById(
       resolve().users,
-      (req, res, next) => res.locals.user.id,
+      (_, res) => res.locals.user.id,
       true,
     ),
     DbEntries.requiredFirstMatch(
