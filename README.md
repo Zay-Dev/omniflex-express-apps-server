@@ -40,6 +40,20 @@ The omniflex mono-repo is available at [here](https://github.com/Zay-Dev/omnifle
 - `response-time` - for response time
 - `winston` - for logging
 
+## Quick Start
+
+```bash
+# Create new project
+npx https://gist.github.com/Zay-Dev/7bcca907f661409d00a4d59e3615eeb4 my-project
+
+# OR clone manually
+git clone --recurse-submodules git@github.com:Zay-Dev/Omniflex.git my-project
+cd my-project
+
+## Update .env file, install dependencies and start the server
+yarn && yarn dev:server
+```
+
 
 ## Installation
 
