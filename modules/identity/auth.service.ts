@@ -1,9 +1,8 @@
 import ms from 'ms';
+import { Response } from 'express';
 
 import config from '@/config';
 import { jwtProvider } from '@/utils/jwt';
-
-import { Response } from '@omniflex/infra-express/types';
 import { UserSessionService } from '@omniflex/module-user-session-core';
 
 type TUser = {
