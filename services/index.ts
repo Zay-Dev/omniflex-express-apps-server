@@ -10,7 +10,6 @@ import { AutoServer } from '@omniflex/infra-express';
 import { createLogger } from '@omniflex/infra-winston';
 import { Containers, initializeAppContainer } from '@omniflex/core';
 
-
 export const resolve = appContainer.resolve;
 
 const swaggerRoutes = async () => {

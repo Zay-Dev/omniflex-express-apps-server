@@ -21,6 +21,7 @@ router
   .get('/my/profile',
     // #swagger.security = [{"bearerAuth": []}]
     auth.requireExposed,
+
     DbEntries.requiredById(
       resolve().users,
       (_, res) => res.locals.user.id,
@@ -31,6 +32,7 @@ router
       (_, res) => ({ userId: res.locals.user.id }),
       'profile'
     ),
+
     create(controller => controller.tryGetMyProfile()),
   )
 

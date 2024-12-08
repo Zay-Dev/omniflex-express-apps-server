@@ -16,29 +16,9 @@ The omniflex mono-repo is available at [here](https://github.com/Zay-Dev/omnifle
 
 ## Installation
 
-### 1. Core Dependencies
+### 1. Environment Setup
 
-From the mono-repo root directory, install the following packages:
-
-
-```bash
-# Core packages
-yarn ws-run apps-server add @omniflex/core@^0.1.0
-yarn ws-run apps-server add @omniflex/infra-express@^0.1.0
-yarn ws-run apps-server add @omniflex/infra-mongoose@^0.1.0
-yarn ws-run apps-server add @omniflex/infra-swagger-autogen@^2.24.0
-yarn ws-run apps-server add @omniflex/infra-winston@^0.1.0
-
-# Identity module packages
-yarn ws-run apps-server add @omniflex/module-identity-core@^0.1.0
-yarn ws-run apps-server add @omniflex/module-identity-express@^0.1.0
-yarn ws-run apps-server add @omniflex/module-identity-mongoose@^0.1.0
-yarn ws-run apps-server add @omniflex/module-identity-sequelize-v6@^0.1.0
-```
-
-### 2. Environment Setup
-
-Create a `.env` file in the project root:
+Create a `.env` file in the project root (see `.env.example`):
 
 ```env
 # Environment (development, production, test)
@@ -58,8 +38,9 @@ PORT_EXPOSED=3500  # Port for public/exposed API
 PORT_STAFF=3600    # Port for staff API
 PORT_DEVELOPER=3700  # Port for developer API
 
-# Db Driver (mongoose, postgres)
-DB_DRIVER=mongoose
+# Db Driver (mongoose, postgres, sqlite)
+#DB_DRIVER=mongoose
+DB_DRIVER=sqlite
 
 # MongoDb
 MONGO_DB=
@@ -67,6 +48,9 @@ MONGO_URI=mongodb://localhost:27017/omniflex
 
 # Postgres
 POSTGRES_URI="postgresql://postgres:test1234@localhost:5432/omniflex?schema=public"
+
+# Sqlite
+SQLITE_URI=":memory:"
 
 # JWT Configuration
 JWT_ALGORITHM=RS256
@@ -79,19 +63,22 @@ JWT_REFRESH_TOKEN_EXPIRATION=30d
 
 ## Project Structure
 
-- `/services` - Core service initialization and configuration
-- `/modules` - Feature modules (e.g., identity)
-- `/middlewares` - Express middlewares
-- `/utils` - Utility functions and providers
 - `/docs` - Auto-generated Swagger documentation
+- `/files` - RSA key pair for JWT signing
+- `/middlewares` - Express middlewares
+- `/services` - Core service initialization and configuration
+- `/modules` - Feature modules (e.g., identity), the main codebase
+- `/utils` - Utility functions and providers
 
 ## Available Scripts
 
 ```bash
 # Development mode with hot reload
 yarn dev
+
 # Build the project
 yarn build
+
 # Start production server
 yarn start
 ```
@@ -112,7 +99,7 @@ You could also mount the files to the container in production.
 - POST `/v1/users` - Register new user
 - POST `/v1/users/access-tokens` - Login
 - PUT `/v1/users/access-tokens` - Refresh access token
-- DELETE `/v1/users/access-tokens` - Revoke access token
+- DELETE `/v1/users/access-tokens` - Revoke access token (Logout)
 - GET `/v1/users/my/profile` - Get current user profile
 
 ### Staff APIs (Port 3600)
@@ -122,6 +109,9 @@ You could also mount the files to the container in production.
 - GET `/v1/ping` - Health check
 - GET `/v1/users` - List all users
 - GET `/v1/users/:id` - Get user by ID
+- GET `/swagger/exposed` - Swagger UI for public APIs
+- GET `/swagger/staff` - Swagger UI for staff APIs
+- GET `/swagger/developer` - Swagger UI for developer APIs
 
 ## Technical Guide
 
@@ -133,23 +123,70 @@ This example implements a multi-server architecture with three distinct servers:
 - **Staff Server (3600)**: Internal staff-only APIs
 - **Developer Server (3700)**: Development and debugging APIs
 
-Each server provides isolation and separate security contexts for different types of users.
+> Each server provides isolation and separate security (or any other area) contexts for different types of users.
+
+> Easier to setup/manage the cloud security policies.
 
 ### Service Setup Flow
 
-1. **Initialize Core Services**
+#### 1. **Entry Point**
 
 ```typescript
-import '@/services';
-import as Servers from '@/servers';
+// -- index.ts
+import '@/services'; // -- actual entry point
+
+// -- testing routes, could be removed, suggested to keep the ping endpoints
+import * as Servers from '@/servers';
 import { errors } from '@omniflex/core';
+
+Servers.exposedRoute('/v1/ping')
+  .get('/', (_, res) => {
+    res.json({ message: 'Pong (staff)' });
+  });
+
+Servers.staffRoute('/v1/ping')
+  .get('/', (_, res) => {
+    res.json({ message: 'Pong (staff)' });
+  });
+
+Servers.developerRoute('/v1/')
+  .useMiddlewares([(_, __, next) => {
+    console.log('Middleware for developer');
+    return next();
+  }])
+  .get('/ping', (_, res) => {
+    res.json({ message: 'Pong (developer)' });
+  })
+  .get('/errors/401', (_, __, next) => {
+    next(errors.unauthorized());
+  })
+  .get('/errors/async', async () => {
+    throw errors.custom('Custom error', 500);
+  })
+  .get('/errors/uncatchable', () => {
+    (async () => {
+      throw errors.custom('Custom error', 500);
+    })();
+  });
 ```
 
-2. **Service Configuration**
-The service initialization flow (see `services/index.ts`):
+#### 2. **Services Configuration**
 
 ```typescript:services/index.ts
 // -- services/index.ts
+import config from '@/config'; // -- typed configuration for the app. No more `process.env` everywhere!
+/* other imports 
+  ...
+*/
+
+export const resolve = appContainer.resolve;
+
+const swaggerRoutes = async () => {
+  const router = Servers.developerRoute('/swagger');
+  /* swagger routes setup
+    ...
+  */
+};
 
 initializeAppContainer({
   logger: createLogger({ config }),
@@ -157,22 +194,17 @@ initializeAppContainer({
 });
 
 (async () => {
-  const registered = Containers.asValues({
-    config,
+  const { sequelize, mongoose } = await connectDb(); // -- db-driver.ts
 
-    postgres: config.dbDriver == 'postgres' &&
-      await Postgres.getConnection(config) || undefined,
-    mongoose: config.dbDriver == 'mongoose' &&
-      await Mongoose.getConnection(config) || undefined,
+  Containers.asValues({
+    config,
+    mongoose,
+    sequelize,
   });
 
-  await (await import('./modules')).initialize();
+  await (await import('./modules')).initialize();   // -- configure routes of all modules
 
-  switch (config.dbDriver) {
-    case 'postgres':
-      await registered.resolve('postgres').sync();
-      break;
-  }
+  sequelize && await sequelize.sync();    // -- please follow the standard sequelize setup for your production environment
 
   await import('./swagger')
     .then(({ generateSwagger }) => generateSwagger())
@@ -181,47 +213,76 @@ initializeAppContainer({
       await AutoServer.start();
     });
 })();
+
+// -- services/modules.ts
+/* other codes
+  ...
+*/
+
+// -- auto import ../modules/**/(exposed|staff|developer).ts
+async function routes() {
+  const { join } = await import('path');
+
+  const dirname = import.meta.dirname;
+  const path = join(dirname, '../modules');
+
+  await autoImport(path, (filename) => {
+    return ['exposed', 'staff', 'developer']
+      .includes(filename);
+  });
+}
+
+export const initialize = async () => {
+  switch (config.dbDriver) {
+    case 'mongoose':
+      await mongooseIdentity();
+      await mongooseUserSession();
+      break;
+
+    case 'sqlite':
+    case 'postgres':
+      await sequelizeIdentity();
+      await sequelizeUserSession();
+      break;
+  }
+
+  await routes();
+};
 ```
 
-### Module-Based Routing
+#### 3. **Module-Based Routing**
 
-The application uses a module-based architecture for better organization and scalability:
+The example uses a module-based architecture for better organization and scalability:
 
-1. **Module Structure**
+**Module Structure**
 
 ```
 /modules
   /identity
-    controller.ts  # Controller logic
     exposed.ts     # Public APIs
     developer.ts   # Developer APIs
-    index.ts       # Module entry point
+    controller.ts  # Controller logic
+    ...            # Other files
 ```
 
-2. **Creating Routes**
-Example of creating module routes:
+**Creating Routes**
+
+With the current version of `swagger-autogen`, it could only recognize routes in `router.get`, `router.post`, etc.
 
 ```typescript
 import * as Servers from '@/servers';
 
 // Public API route
-const exposedRouter = Servers.exposedRoute('/v1/users');
+const router = Servers.exposedRoute('/v1/users');
 
 // Staff API route
-const staffRouter = Servers.staffRoute('/v1/admin');
+const router = Servers.staffRoute('/v1/admin');
 
 // Developer API route
-const developerRouter = Servers.developerRoute('/v1/debug');
+const router = Servers.developerRoute('/v1/debug');
 ```
 
-Benefits:
-- Clear separation of concerns
-- Independent scaling
-- Easier maintenance
-- Modular security policies
-- Isolated testing environments
-
-### Swagger Documentation
+#### 4. **Swagger Documentation**
 
 The server automatically generates Swagger documentation during startup. Documentation is only accessible through the Developer server.
 
@@ -246,49 +307,7 @@ router.post('/',
 
 The swagger generation process is handled automatically (see `services/swagger.ts`):
 
-```typescript:services/swagger.ts
-// -- services/swagger.ts
-
-export const generateSwagger = async () => {
-  const pathTo = './docs';
-  await fs.mkdir(pathTo, { recursive: true });
-
-  await Promise.all(
-    Object.keys(servers).map(async key => {
-      const doc = {
-        info: {
-          title: getTitle(key),
-          description: getDescription(key),
-        },
-
-        servers: [
-          { url: `http://localhost:${config.ports[key] || "unknown"}` },
-        ],
-
-        components: {
-          '@schemas': modulesSchemas,
-
-          securitySchemes: {
-            bearerAuth: {
-              type: 'http',
-              scheme: 'bearer'
-            }
-          }
-        },
-      };
-
-      const outputFile = `${pathTo}/swagger-${key}.json`;
-
-      const routes = [`./modules/*/${key}`]
-        .flatMap(file => [`${file}.ts`, `${file}.js`]);
-
-      await swaggerAutogen({ openapi: '3.0.0' })(outputFile, routes, doc);
-    })
-  );
-};
-```
-
-### Server Configuration
+#### 5. **Server Configuration**
 
 The server configuration is managed through the `servers.ts` file:
 
