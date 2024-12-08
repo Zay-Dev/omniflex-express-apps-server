@@ -14,6 +14,33 @@ The omniflex mono-repo is available at [here](https://github.com/Zay-Dev/omnifle
 - MongoDB database
 - RSA key pair for JWT signing (provided in `files` directory)
 
+## Dependencies
+
+- `jest`, `jest-silent-reporter` - testing
+- `tsc`, `tsc-alias` - TypeScript compilation
+- `typescript` - for TypeScript compilation
+- `bcrypt` - for password hashing
+- `jsonwebtoken` - for JWT signing and verification
+- `ms` - for time conversion
+- `swagger-ui-express` - for Swagger UI
+- `awilix` - for dependency injection
+- `dotenv` - for loading environment variables
+- `joi` - for input validation
+- `joi-to-swagger` - for converting Joi schemas to Swagger definitions
+- `moment` - for date and time manipulation
+- `nodemon` - for development hot reloading
+- `tsx` - for running TypeScript code in the development environment
+- `uuid` - for generating UUIDs
+- `cors` - for Cross-Origin Resource Sharing
+- `express` - for the web framework
+- `express-fileupload` - for file upload
+- `express-useragent` - for user agent parsing
+- `helmet` - for security headers
+- `morgan` - for logging HTTP requests
+- `response-time` - for response time
+- `winston` - for logging
+
+
 ## Installation
 
 ### 1. Environment Setup
