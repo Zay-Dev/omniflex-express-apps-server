@@ -3,7 +3,7 @@ import { jwtProvider } from '@/utils/jwt';
 import { Request, Response, NextFunction } from 'express';
 
 import { resolve } from '@omniflex/module-identity-core';
-import { DbEntries } from '@omniflex/infra-express/validators';
+import { RequiredDbEntries } from '@omniflex/infra-express';
 import { UserSessionService } from '@omniflex/module-user-session-core/services/user-session.service';
 
 export const validateRefreshToken = [
@@ -33,7 +33,7 @@ export const validateRefreshToken = [
 
     return next();
   },
-  DbEntries.requiredById(
+  RequiredDbEntries.byId(
     resolve().users,
     async (req) => {
       const { id } = await jwtProvider.decode(req.body.refreshToken);

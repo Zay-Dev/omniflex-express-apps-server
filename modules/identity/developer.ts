@@ -3,14 +3,14 @@
 
 import * as Servers from '@/servers';
 import { resolve } from '@omniflex/module-identity-core';
-import { DbEntries } from '@omniflex/infra-express/validators';
+import { RequiredDbEntries } from '@omniflex/infra-express';
 import { BaseExpressController } from '@omniflex/infra-express';
 
 const router = Servers.developerRoute('/v1/users');
 
 router
   .get('/:id',
-    DbEntries.requiredById(
+    RequiredDbEntries.byId(
       resolve().users,
       (req) => req.params.id,
       'user',
