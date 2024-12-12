@@ -12,6 +12,13 @@ import { Containers, initializeAppContainer } from '@omniflex/core';
 
 export const resolve = appContainer.resolve;
 
+const resolvePath = async (relativePath: string) => {
+  const dirname = import.meta.dirname;
+  const { join } = await import('path');
+
+  return join(dirname, relativePath);
+}
+
 const swaggerRoutes = async () => {
   const router = Servers.developerRoute('/swagger');
   (router as any)._unsafeRoutes = true;
@@ -22,7 +29,9 @@ const swaggerRoutes = async () => {
     router
       .use(`/${key}`,
         async (req, _, next) => {
-          const imported = (await import(`../docs/swagger-${key}.json`, {
+          const path = await resolvePath(`../docs/swagger-${key}.json`);
+
+          const imported = (await import(path, {
             assert: {
               type: "json",
             },
@@ -63,8 +72,7 @@ initializeAppContainer({
     sequelize,
   });
 
-  await (await import('./modules'))
-    .initialize();
+  await (await import('./modules')).initialize();
 
   sequelize && await sequelize.sync();
 

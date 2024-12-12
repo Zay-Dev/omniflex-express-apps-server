@@ -26,7 +26,10 @@ const getDescription = (type) => {
 };
 
 export const generateSwagger = async () => {
-  const pathTo = './docs';
+  const dirname = import.meta.dirname;
+  const { join } = await import('path');
+  const pathTo = join(dirname, '../docs');
+
   await fs.mkdir(pathTo, { recursive: true });
 
   await Promise.all(
