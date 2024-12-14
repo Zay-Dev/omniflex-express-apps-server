@@ -44,14 +44,16 @@ The omniflex mono-repo is available at [here](https://github.com/Zay-Dev/omnifle
 
 ```bash
 # Create new project
-npx https://gist.github.com/Zay-Dev/7bcca907f661409d00a4d59e3615eeb4 my-project
+npx npx github:Zay-Dev/omniflex-npx --alpha --express my-project
+
+## Update .env file, install dependencies and start the server
+yarn && yarn dev:server
 
 # OR clone manually
 git clone --recurse-submodules git@github.com:Zay-Dev/Omniflex.git my-project
 cd my-project
 
-## Update .env file, install dependencies and start the server
-yarn && yarn dev:server
+## Checkout https://www.omniflex.io/get-started/express
 ```
 
 
@@ -80,7 +82,8 @@ PORT_STAFF=3600    # Port for staff API
 PORT_DEVELOPER=3700  # Port for developer API
 
 # Db Driver (mongoose, postgres, sqlite)
-#DB_DRIVER=mongoose
+DB_DRIVER=mongoose
+DB_DRIVER=postgres
 DB_DRIVER=sqlite
 
 # MongoDb
@@ -114,6 +117,8 @@ JWT_REFRESH_TOKEN_EXPIRATION=30d
 ## Available Scripts
 
 ```bash
+yarn && yarn dev:server # suggested at the omniflex root
+
 # Development mode with hot reload
 yarn dev
 
@@ -216,18 +221,12 @@ Servers.developerRoute('/v1/')
 ```typescript:services/index.ts
 // -- services/index.ts
 import config from '@/config'; // -- typed configuration for the app. No more `process.env` everywhere!
+
 /* other imports 
   ...
 */
 
 export const resolve = appContainer.resolve;
-
-const swaggerRoutes = async () => {
-  const router = Servers.developerRoute('/swagger');
-  /* swagger routes setup
-    ...
-  */
-};
 
 initializeAppContainer({
   logger: createLogger({ config }),
@@ -242,17 +241,12 @@ initializeAppContainer({
     mongoose,
     sequelize,
   });
-
-  await (await import('./modules')).initialize();   // -- configure routes of all modules
+  
+  await Modules.initialize();   // -- configure routes of all modules
+  await Swagger.initialize();   // -- generate swagger documentation and bind developer swagger routes
 
   sequelize && await sequelize.sync();    // -- please follow the standard sequelize setup for your production environment
-
-  await import('./swagger')
-    .then(({ generateSwagger }) => generateSwagger())
-    .then(async () => {
-      await swaggerRoutes();
-      await AutoServer.start();
-    });
+  await AutoServer.start();
 })();
 
 // -- services/modules.ts

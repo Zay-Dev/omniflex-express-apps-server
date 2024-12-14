@@ -10,6 +10,7 @@ import * as Swagger from './swagger';
 import { appContainer, connectDb } from './db-driver';
 
 export const resolve = appContainer.resolve;
+
 initializeAppContainer({
   logger: createLogger({ config }),
   hashProvider: new BcryptHashProvider(),
