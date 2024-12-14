@@ -1,9 +1,18 @@
-import config from '@/config';
-import { servers } from '@/servers';
-
 import fs from 'fs/promises';
+import config from '@/config';
 import { modulesSchemas } from '@omniflex/core';
+import { servers, developerRoute } from '@/servers';
+
+import helmet from 'helmet';
+import swaggerUI from 'swagger-ui-express';
 import swaggerAutogen from '@omniflex/infra-swagger-autogen';
+
+const resolvePath = async (relativePath: string) => {
+  const dirname = import.meta.dirname;
+  const { join } = await import('path');
+
+  return join(dirname, relativePath);
+};
 
 const getTitle = (type) => {
   switch (type) {
@@ -25,11 +34,8 @@ const getDescription = (type) => {
   return "Unknown APIs";
 };
 
-export const generateSwagger = async () => {
-  const dirname = import.meta.dirname;
-  const { join } = await import('path');
-  const pathTo = join(dirname, '../docs');
-
+const generateSwagger = async () => {
+  const pathTo = await resolvePath('../docs');
   await fs.mkdir(pathTo, { recursive: true });
 
   await Promise.all(
@@ -64,4 +70,50 @@ export const generateSwagger = async () => {
       await swaggerAutogen({ openapi: '3.0.0' })(outputFile, routes, doc);
     })
   );
+};
+
+const swaggerRoutes = async () => {
+  const router = developerRoute('/swagger');
+  const { pathToFileURL } = await import('url');
+
+  (router as any)._unsafeRoutes = true;
+
+  for (const key of Object.keys(servers)) {
+    const port = config.ports[key];
+
+    router
+      .use(`/${key}`,
+        async (req, _, next) => {
+          const path = await resolvePath(`../docs/swagger-${key}.json`);
+
+          const imported = (await import(`${pathToFileURL(path)}`, {
+            assert: {
+              type: "json",
+            },
+          }));
+
+          req.swaggerDoc = imported.default;
+          next();
+        },
+        helmet({
+          contentSecurityPolicy: {
+            directives: {
+              'connect-src': `localhost:${port}`,
+            },
+          },
+        }),
+        swaggerUI.serveFiles(undefined, {
+          swaggerOptions: {
+            defaultModelsExpandDepth: -1,
+            defaultModelExpandDepth: 999,
+          },
+        }),
+        swaggerUI.setup(),
+      );
+  }
+};
+
+export const initialize = async () => {
+  await generateSwagger();
+  await swaggerRoutes();
 };
