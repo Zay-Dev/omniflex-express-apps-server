@@ -1,38 +1,35 @@
-import { errors } from '@omniflex/core';
 import { jwtProvider } from '@/utils/jwt';
+import { errors, Utils } from '@omniflex/core';
 import { Request, Response, NextFunction } from 'express';
 
 import { resolve } from '@omniflex/module-identity-core';
 import { RequiredDbEntries } from '@omniflex/infra-express';
-import { UserSessionService } from '@omniflex/module-user-session-core/services/user-session.service';
+
+import { tryValidateBody } from '@omniflex/infra-express/helpers/joi';
+import { schemas } from '@omniflex/module-user-session-core/joi.schemas';
+
+import {
+  TBodyRefreshToken,
+  UserSessionService,
+} from '@omniflex/module-user-session-core';
 
 export const validateRefreshToken = [
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { refreshToken } = req.body;
+  tryValidateBody(schemas.refreshToken),
 
-    try {
-      const decoded = await jwtProvider.verify(refreshToken);
+  (req: Request, _: Response, next: NextFunction) => {
+    Utils.tryAction(async () => {
+      const { refreshToken } = req.body as TBodyRefreshToken;
+      const { __type, __identifier } = await jwtProvider.verify(refreshToken);
 
-      if (decoded.__type !== 'refresh-token') {
-        return next(errors.unauthorized());
+      if (__type != 'refresh-token') {
+        throw errors.unauthorized();
       }
+      await UserSessionService.throwIfInvalidSession(__identifier);
 
       return next();
-    } catch (error) {
-      return next(errors.unauthorized());
-    }
+    }, { next });
   },
-  async (req, _, next) => {
-    const { __identifier } = await jwtProvider.decode(req.body.refreshToken);
 
-    try {
-      await UserSessionService.throwIfInvalidSession(__identifier);
-    } catch (error) {
-      return next(error);
-    }
-
-    return next();
-  },
   RequiredDbEntries.byId(
     resolve().users,
     async (req) => {

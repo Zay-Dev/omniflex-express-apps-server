@@ -3,7 +3,7 @@ import { TUser } from '@omniflex/module-identity-core/types';
 import { getControllerCreator } from '@omniflex/infra-express';
 
 import { IdentitySchemas } from '@omniflex/module-identity-core';
-import { UserSessionSchemas } from '@omniflex/module-user-session-core';
+import { TBodyRefreshToken } from '@omniflex/module-user-session-core';
 
 import { UsersController }
   from '@omniflex/module-identity-express/users.controller';
@@ -57,7 +57,7 @@ class Controller extends UsersController<TUser & {
   }
 
   tryRefreshToken() {
-    type TBody = UserSessionSchemas.TBodyRefreshToken;
+    type TBody = TBodyRefreshToken;
 
     this.tryActionWithBody<TBody>(async ({ refreshToken }) => {
       const user = this.res.locals.required.user;

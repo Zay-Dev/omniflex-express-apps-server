@@ -30,7 +30,6 @@
     "@omniflex/module-identity-express": "0.1.0",
     "@omniflex/module-identity-mongoose": "0.1.0",
     "@omniflex/module-identity-sequelize-v6": "0.1.0",
-    "@omniflex/module-user-session-express": "0.1.0",
     "@omniflex/module-user-session-mongoose": "0.1.0",
     "@omniflex/module-user-session-sequelize-v6": "0.1.0",
     "bcrypt": "^5.1.1",

@@ -6,9 +6,7 @@ import { auth } from '@/middlewares/auth';
 
 import { resolve } from '@omniflex/module-identity-core';
 import { RequiredDbEntries } from '@omniflex/infra-express';
-
 import { IdentityValidators } from '@omniflex/module-identity-express';
-import { UserSessionValidators } from '@omniflex/module-user-session-express';
 
 import { create } from './controller';
 import { validateRefreshToken } from './refresh-token.validation';
@@ -50,7 +48,6 @@ router
 
   .put('/access-tokens',
     // #swagger.jsonBody = required|components/schemas/moduleUserSession/refreshToken
-    UserSessionValidators.validateRefreshToken,
     validateRefreshToken,
     create(controller => controller.tryRefreshToken()),
   )
