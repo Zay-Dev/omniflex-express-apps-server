@@ -1,9 +1,8 @@
-//import config from "@/config";
-import { Response } from 'express';
 import { errors, logger } from '@omniflex/core';
 
 import { ServerType } from '@/servers';
 import { jwtProvider } from "@/utils/jwt";
+import { ExpressUtils } from '@omniflex/infra-express';
 import { UserSessionService } from '@omniflex/module-user-session-core';
 
 const jwt = jwtProvider;
@@ -19,14 +18,14 @@ const middleware = ({
 } = {}) => {
   const optional = !mode;
 
-  return async (req, res: Response, next) => {
+  return ExpressUtils.tryAction(async (req, res) => {
     const token = req.headers.authorization?.replace("Bearer ", "");
 
     if (!optional && !token) {
-      return next(errors.unauthorized());
+      throw errors.unauthorized();
     }
 
-    if (!token) return next();
+    if (!token) return;
 
     try {
       const {
@@ -36,7 +35,7 @@ const middleware = ({
       } = (await jwt.verify(token)) ?? {};
 
       if (__type !== "access-token") {
-        return next(errors.unauthorized());
+        throw errors.unauthorized();
       }
 
       res.locals.user = user;
@@ -44,19 +43,16 @@ const middleware = ({
 
       if (typeof mode != "boolean") {
         if (mode != user.__appType) {
-          return next(errors.forbidden());
+          throw errors.forbidden();
         }
       }
 
       await throwIfNotValidToken(__identifier);
-      return next();
     } catch (error: any) {
       logger.error("Auth", { error });
-      return next(errors.unauthorized());
+      throw errors.unauthorized();
     }
-
-    return next(errors.custom("Unexpected Error"));
-  };
+  });
 };
 
 export const auth = {

@@ -3,43 +3,34 @@
 
 import * as Servers from '@/servers';
 import { resolve } from '@omniflex/module-identity-core';
-import { RequiredDbEntries } from '@omniflex/infra-express';
-import { BaseExpressController } from '@omniflex/infra-express';
+
+import {
+  ExpressUtils,
+  RequiredDbEntries,
+} from '@omniflex/infra-express';
 
 const router = Servers.developerRoute('/v1/users');
 
 router
   .get('/:id',
-    RequiredDbEntries.byId(
-      resolve().users,
-      (req) => req.params.id,
-      'user',
-    ),
-    (req, res, next) => {
-      const controller = new BaseExpressController(req, res, next);
-
-      controller.tryAction(() => {
-        controller.respondRequired('user');
-      });
-    })
+    RequiredDbEntries.byPathId(resolve().users, 'user'),
+    ExpressUtils.tryAction(async (_, res) => {
+      return ExpressUtils.respondRequired(res, res.locals, 'user');
+    }))
 
   .get('/',
-    (req, res: any, next) => {
-      const controller = new BaseExpressController(req, res, next);
+    ExpressUtils.tryAction(async (_, res) => {
+      const users = await resolve().users.find(
+        {
+          deletedAt: null,
+          //{ identifier: 'null' },
+        },
+        {
+          populate: 'profile',
+          select: '-createdAt -updatedAt -isDeleted',
+        },
+      );
 
-      controller.tryAction(async function () {
-        const users = await resolve().profiles.find(
-          {
-            deletedAt: null,
-            //{ identifier: 'null' },
-          },
-          {
-            populate: 'user',
-            select: '-createdAt -updatedAt -isDeleted',
-          },
-        );
-
-        controller.respondMany(users);
-      });
-    }
+      return ExpressUtils.respondMany(res, users);
+    }, true),
   );

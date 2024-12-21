@@ -14,30 +14,33 @@ async function mongooseUserSession() {
 }
 
 async function sequelizeIdentity() {
-  const sequelize = await import('@omniflex/module-identity-sequelize-v6');
   const Types = await import('@omniflex/infra-sequelize-v6/types');
+  const sequelize = await import('@omniflex/module-identity-sequelize-v6');
+  const UserSchema = await import('@omniflex/module-identity-sequelize-v6/schemas/user.js');
 
-  const userSchema = sequelize.getUserSchema({
-    ...sequelize.userBaseSchema,
+  const userDefinition = UserSchema.getDefinition({
+    ...UserSchema.baseDefinition,
     appTypes: {
       ...Types.mixed(),
       defaultValue: [],
     },
   });
 
-  sequelize.createRegisteredRepositories(userSchema);
+  const repository = UserSchema.createRepository(userDefinition);
+  sequelize.createRegisteredRepositories(repository);
 }
 
 async function mongooseIdentity() {
   const mongoose = await import('@omniflex/module-identity-mongoose');
-  const { requiredString } = await import('@omniflex/infra-mongoose/types');
+  const Types = await import('@omniflex/infra-mongoose/types');
+  const UserSchema = await import('@omniflex/module-identity-mongoose/schemas/user.js');
 
-  const userSchema = mongoose.getUserSchema({
-    ...mongoose.userBaseSchema,
-    appTypes: [requiredString],
+  const userDefinition = UserSchema.defineSchema({
+    ...UserSchema.baseDefinition,
+    appTypes: [Types.requiredString],
   });
 
-  mongoose.createRegisteredRepositories(userSchema);
+  mongoose.createRegisteredRepositories(userDefinition);
 }
 
 async function routes() {

@@ -1,12 +1,14 @@
 import { errors } from '@omniflex/core';
-import { TUser } from '@omniflex/module-identity-core/types';
 import { getControllerCreator } from '@omniflex/infra-express';
 
-import { IdentitySchemas } from '@omniflex/module-identity-core';
-import { UserSessionSchemas } from '@omniflex/module-user-session-core';
+import { UsersController } from '@omniflex/module-identity-express';
+import { TBodyRefreshToken } from '@omniflex/module-user-session-core';
 
-import { UsersController }
-  from '@omniflex/module-identity-express/users.controller';
+import {
+  TUser,
+  TBodyLoginWithEmail,
+  TBodyRegisterWithEmail,
+} from '@omniflex/module-identity-core';
 
 import { AuthService } from './auth.service';
 
@@ -14,7 +16,7 @@ class Controller extends UsersController<TUser & {
   appTypes: string[];
 }> {
   tryRegisterWithEmail(appType: string) {
-    type TBody = IdentitySchemas.TBodyRegisterWithEmail;
+    type TBody = TBodyRegisterWithEmail;
 
     this.tryActionWithBody<TBody>(async ({ password, ...body }) => {
       const { id } = await this.register(appType, password, {
@@ -31,7 +33,7 @@ class Controller extends UsersController<TUser & {
   }
 
   tryLoginWithEmail(appType: string) {
-    type TBody = IdentitySchemas.TBodyLoginWithEmail;
+    type TBody = TBodyLoginWithEmail;
 
     this.tryActionWithBody<TBody>(async (body) => {
       const user = await this.login(appType, {
@@ -57,7 +59,7 @@ class Controller extends UsersController<TUser & {
   }
 
   tryRefreshToken() {
-    type TBody = UserSessionSchemas.TBodyRefreshToken;
+    type TBody = TBodyRefreshToken;
 
     this.tryActionWithBody<TBody>(async ({ refreshToken }) => {
       const user = this.res.locals.required.user;
@@ -76,17 +78,6 @@ class Controller extends UsersController<TUser & {
       await AuthService.logout(this.res);
 
       return this.res.status(204).send();
-    });
-  }
-
-  tryGetMyProfile() {
-    this.tryAction(async () => {
-      const profile = this.res.locals.required.profile;
-
-      return this.respondOne({
-        profileId: profile.id,
-        ...profile,
-      });
     });
   }
 }
