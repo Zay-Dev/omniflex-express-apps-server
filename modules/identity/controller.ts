@@ -1,15 +1,14 @@
 import { errors } from '@omniflex/core';
-import { TUser } from '@omniflex/module-identity-core/types';
 import { getControllerCreator } from '@omniflex/infra-express';
+
+import { UsersController } from '@omniflex/module-identity-express';
 import { TBodyRefreshToken } from '@omniflex/module-user-session-core';
 
 import {
+  TUser,
   TBodyLoginWithEmail,
   TBodyRegisterWithEmail,
 } from '@omniflex/module-identity-core';
-
-import { UsersController }
-  from '@omniflex/module-identity-express/users.controller';
 
 import { AuthService } from './auth.service';
 
