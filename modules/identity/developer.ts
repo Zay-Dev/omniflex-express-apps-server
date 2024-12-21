@@ -16,17 +16,17 @@ router
     RequiredDbEntries.byPathId(resolve().users, 'user'),
     ExpressUtils.tryAction(async (_, res) => {
       return ExpressUtils.respondRequired(res, res.locals, 'user');
-    }))
+    }, true))
 
   .get('/',
     ExpressUtils.tryAction(async (_, res) => {
-      const users = await resolve().users.find(
+      const users = await resolve().profiles.find(
         {
           deletedAt: null,
           //{ identifier: 'null' },
         },
         {
-          populate: 'profile',
+          populate: 'user',
           select: '-createdAt -updatedAt -isDeleted',
         },
       );
