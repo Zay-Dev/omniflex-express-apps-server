@@ -20,13 +20,13 @@ router
 
   .get('/',
     ExpressUtils.tryAction(async (_, res) => {
-      const users = await resolve().users.find(
+      const users = await resolve().profiles.find(
         {
           deletedAt: null,
           //{ identifier: 'null' },
         },
         {
-          populate: 'profile',
+          populate: 'user',
           select: '-createdAt -updatedAt -isDeleted',
         },
       );
