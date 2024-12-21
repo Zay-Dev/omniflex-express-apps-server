@@ -44,7 +44,7 @@ The omniflex mono-repo is available at [here](https://github.com/Zay-Dev/omnifle
 
 ```bash
 # Create new project
-npx npx github:Zay-Dev/omniflex-npx --alpha --express my-project
+npx github:Zay-Dev/omniflex-npx --alpha --express my-project
 
 ## Update .env file, install dependencies and start the server
 yarn && yarn dev:server
