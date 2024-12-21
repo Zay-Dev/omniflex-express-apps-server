@@ -32,26 +32,26 @@ router
     RequiredDbEntries.firstMatch(
       resolve().profiles,
       (_, res) => ({ userId: res.locals.user.id }),
-      'profile'
+      'profile',
     ),
 
     create(controller => controller.tryGetMyProfile()),
   )
 
   .post('/',  // #swagger.summary = 'Register a new user'
-    // #swagger.jsonBody = required|components/schemas/moduleIdentityRegisterWithEmail
+    // #swagger.jsonBody = required|components/schemas/moduleIdentity/registerWithEmail
     validateRegisterWithEmail,
     create(controller => controller.tryRegisterWithEmail(appType)),
   )
 
   .post('/access-tokens', // #swagger.summary = 'Login with email'
-    // #swagger.jsonBody = required|components/schemas/moduleIdentityLoginWithEmail
+    // #swagger.jsonBody = required|components/schemas/moduleIdentity/loginWithEmail
     validateLoginWithEmail,
     create(controller => controller.tryLoginWithEmail(appType)),
   )
 
   .put('/access-tokens', // #swagger.summary = 'Refresh access token'
-    // #swagger.jsonBody = required|components/schemas/moduleUserSessionRefreshToken
+    // #swagger.jsonBody = required|components/schemas/moduleUserSession/refreshToken
     validateRefreshToken,
     create(controller => controller.tryRefreshToken()),
   )
