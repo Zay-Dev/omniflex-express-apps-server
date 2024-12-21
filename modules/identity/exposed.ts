@@ -35,19 +35,19 @@ router
   )
 
   .post('/',
-    // #swagger.jsonBody = required|components/schemas/moduleIdentity/registerWithEmail
+    // #swagger.jsonBody = required|components/schemas/moduleIdentityRegisterWithEmail
     IdentityValidators.validateRegisterWithEmail,
     create(controller => controller.tryRegisterWithEmail(appType)),
   )
 
   .post('/access-tokens',
-    // #swagger.jsonBody = required|components/schemas/moduleIdentity/loginWithEmail
+    // #swagger.jsonBody = required|components/schemas/moduleIdentityLoginWithEmail
     IdentityValidators.validateLoginWithEmail,
     create(controller => controller.tryLoginWithEmail(appType)),
   )
 
   .put('/access-tokens',
-    // #swagger.jsonBody = required|components/schemas/moduleUserSession/refreshToken
+    // #swagger.jsonBody = required|components/schemas/moduleUserSessionRefreshToken
     validateRefreshToken,
     create(controller => controller.tryRefreshToken()),
   )

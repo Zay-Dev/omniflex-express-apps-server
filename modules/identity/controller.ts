@@ -1,9 +1,12 @@
 import { errors } from '@omniflex/core';
 import { TUser } from '@omniflex/module-identity-core/types';
 import { getControllerCreator } from '@omniflex/infra-express';
-
-import { IdentitySchemas } from '@omniflex/module-identity-core';
 import { TBodyRefreshToken } from '@omniflex/module-user-session-core';
+
+import {
+  TBodyLoginWithEmail,
+  TBodyRegisterWithEmail,
+} from '@omniflex/module-identity-core';
 
 import { UsersController }
   from '@omniflex/module-identity-express/users.controller';
@@ -14,7 +17,7 @@ class Controller extends UsersController<TUser & {
   appTypes: string[];
 }> {
   tryRegisterWithEmail(appType: string) {
-    type TBody = IdentitySchemas.TBodyRegisterWithEmail;
+    type TBody = TBodyRegisterWithEmail;
 
     this.tryActionWithBody<TBody>(async ({ password, ...body }) => {
       const { id } = await this.register(appType, password, {
@@ -31,7 +34,7 @@ class Controller extends UsersController<TUser & {
   }
 
   tryLoginWithEmail(appType: string) {
-    type TBody = IdentitySchemas.TBodyLoginWithEmail;
+    type TBody = TBodyLoginWithEmail;
 
     this.tryActionWithBody<TBody>(async (body) => {
       const user = await this.login(appType, {
