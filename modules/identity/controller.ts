@@ -80,17 +80,6 @@ class Controller extends UsersController<TUser & {
       return this.res.status(204).send();
     });
   }
-
-  tryGetMyProfile() {
-    this.tryAction(async () => {
-      const profile = this.res.locals.required.profile;
-
-      return this.respondOne({
-        profileId: profile.id,
-        ...profile,
-      });
-    });
-  }
 }
 
 export const create = getControllerCreator(Controller);

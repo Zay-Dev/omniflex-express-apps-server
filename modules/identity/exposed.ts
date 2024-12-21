@@ -5,7 +5,7 @@ import * as Servers from '@/servers';
 import { auth } from '@/middlewares/auth';
 
 import { resolve } from '@omniflex/module-identity-core';
-import { RequiredDbEntries } from '@omniflex/infra-express';
+import { ExpressUtils, RequiredDbEntries } from '@omniflex/infra-express';
 
 import { create } from './controller';
 import { validateRefreshToken } from './refresh-token.validation';
@@ -35,7 +35,9 @@ router
       'profile',
     ),
 
-    create(controller => controller.tryGetMyProfile()),
+    ExpressUtils.tryAction((_, res) => {
+      ExpressUtils.respondRequired(res, res.locals, 'profile');
+    }, true),
   )
 
   .post('/',  // #swagger.summary = 'Register a new user'
